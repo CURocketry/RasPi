@@ -54,9 +54,10 @@ camera.awb_mode = 'auto'
 camera.image_effect = 'none'
 camera.color_effects = None
 camera.rotation = 0
-camera.hflip = False
-camera.vflip = False
+camera.hflip = True
+camera.vflip = True
 camera.crop = (0.0, 0.0, 1.0, 1.0)
+myVar=False
 
 
 def cameraCapture():
@@ -65,30 +66,41 @@ def cameraCapture():
 	# Duration of video capture, in seconds
 	#
 	myVid = 1800
-        GPIO.output(31, GPIO.HIGH)
-        GPIO.output(15, GPIO.HIGH)
+    GPIO.output(31, GPIO.HIGH)
+    GPIO.output(15, GPIO.HIGH)
 	#input_value == GPIO.HIGH):
-        #
-        # Take initial image
-        #
-        global camera
-        camera.capture('/home/pi/Documents/init_image_' + getCurrentTimeString() + '.jpg')
-        #
-        # Capture video
-        #
-        camera.start_recording('/home/pi/Documents/video_' + getCurrentTimeString() + '.h264')
+    #
+    # Take initial image
+    #
+    global camera
+    camera.capture('/home/pi/Documents/init_image_' + getCurrentTimeString() + '.jpg')
+    #
+    # Capture video
+    #
+    camera.start_recording('/home/pi/Documents/video_' + getCurrentTimeString() + '.h264')
 
-        #
-        # Wait predetermined amount of time
-        #
+    #
+    # Wait predetermined amount of time
+    #
 	#print("Camera Begin!")
-	success = myEvent.wait(myVid)
+	#success = myEvent.wait(myVid)
+	mytime=gmtime()
+	notDone=True
+	failed=False
+	global myVar
+	while (notDone):
+		sleep(0.1)
+		if (((gmtime()-myVid)>mytime) or myVar):
+			notDone = False
+			if (myVar == True):
+				failed=True
+
 	GPIO.output(31, GPIO.LOW)
 	GPIO.output(15, GPIO.LOW)
 	#print(success)
 	#print("Camera End!")
 	global successor
-	if (success == False):
+	if (failed == False):
 		successor = True
 	else:
 		successor = False
@@ -107,7 +119,8 @@ def cameraCapture():
 def detectFallingPin():
 	GPIO.wait_for_edge(29, GPIO.FALLING)
 	#print("Falling")
-        myEvent.set()
+	global myVar
+	myVar = True
 	return
 
 # starts cameraCapture() if GPIO pin rises from low to high
@@ -130,9 +143,6 @@ while (successor == False):
 	camThread = threading.Thread(target=cameraCapture)
 	camThread.run()
 	Event2.wait(10000)
-	#print (successor)
-	#print ("Face")
-#print ("Complete")
 GPIO.output(31, GPIO.LOW)
 while (1):
 	GPIO.output(15, GPIO.LOW)
