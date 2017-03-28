@@ -15,11 +15,11 @@ successor = False
 # mm-dd@hh:mm:ss
 #
 def getCurrentTimeString ():
-    tm = gmtime()
+  tm = gmtime()
 
-    return "%04d-%02d-%02d_%02d-%02d-%02d" % \
-        (tm.tm_year,tm.tm_mon,tm.tm_mday,tm.tm_hour,
-        tm.tm_min,tm.tm_sec)
+  return "%04d-%02d-%02d_%02d-%02d-%02d" % \
+  (tm.tm_year,tm.tm_mon,tm.tm_mday,tm.tm_hour,
+  tm.tm_min,tm.tm_sec)
 
 # use P1 header pin numbering convention
 GPIO.setmode(GPIO.BOARD)
@@ -59,93 +59,84 @@ camera.crop = (0.0, 0.0, 1.0, 1.0)
 
 
 def cameraCapture():
-	#FOLDER_PATH = '/var/lib/crtlvc/media'
-	#
-	# Duration of video capture, in seconds
-	#
-	myVid = 1800
-    GPIO.output(31, GPIO.HIGH)
-    GPIO.output(15, GPIO.HIGH)
-	#input_value == GPIO.HIGH):
-    #
-    # Take initial image
-    #
-    global camera
-    camera.capture('/home/pi/Documents/init_image_' + getCurrentTimeString() + '.jpg')
-    #
-    # Capture video
-    #
-    camera.start_recording('/home/pi/Documents/video_' + getCurrentTimeString() + '.h264')
+  myVid = 1800
+  GPIO.output(31, GPIO.HIGH)
+  GPIO.output(15, GPIO.HIGH)
+  global camera
+  camera.capture('/home/pi/Documents/init_image_' + getCurrentTimeString() + '.jpg')
+  #
+  # Capture video
+  #
+  camera.start_recording('/home/pi/Documents/video_' + getCurrentTimeString() + '.h264')
 
-    #
-    # Wait predetermined amount of time
-    #
-	#print("Camera Begin!")
-	#success = myEvent.wait(myVid)
-	mytime=time()
-	notDone=True
-	failed=False
-	global myVar
-	while (notDone):
-		sleep(0.1)
-		newtime = time()
-		if (((newtime-myVid)>mytime) or myVar):
-			notDone = False
-			if (myVar == True):
-				failed=True
-
-	GPIO.output(31, GPIO.LOW)
-	GPIO.output(15, GPIO.LOW)
-	#print(success)
-	#print("Camera End!")
-	global successor
-	if (failed == False):
-		successor = True
-	else:
-		successor = False
-        #
-        # Stop video capture
-        #
-	camera.stop_recording()
-        #
-        # Take final image
-        #
-	camera.capture('/home/pi/Documents/video_' + 'fin_image' + getCurrentTimeString() + '.jpg')
-	Event2.set()
-	return
+  #
+  # Wait predetermined amount of time
+  #
+  #print("Camera Begin!")
+  #success = myEvent.wait(myVid)
+  mytime=time()
+  notDone=True
+  failed=False
+  global myVar
+  while (notDone):
+  	sleep(0.1)
+  	newtime = time()
+    if (((newtime-myVid)>mytime) or myVar):
+      notDone = False
+      if (myVar == True):
+        failed=True
+  GPIO.output(31, GPIO.LOW)
+  GPIO.output(15, GPIO.LOW)
+  #print(success)
+  #print("Camera End!")
+  global successor
+  if (failed == False):
+    successor = True
+  else:
+    successor = False
+  #
+  # Stop video capture
+  #
+  camera.stop_recording()
+  #
+  # Take final image
+  #
+  camera.capture('/home/pi/Documents/video_' + 'fin_image' + getCurrentTimeString() + '.jpg')
+  Event2.set()
+  return
 
 # stops cameraCapture() if GPIO pin falls from high to low
 def detectFallingPin():
-	GPIO.wait_for_edge(29, GPIO.FALLING)
-	#print("Falling")
-	global myVar
-	myVar = True
-	return
+  GPIO.wait_for_edge(29, GPIO.FALLING)
+  #print("Falling")
+  global myVar
+  myVar = True
+  return
 
 # starts cameraCapture() if GPIO pin rises from low to high
 def detectRisingPin():
-    GPIO.wait_for_edge(29, GPIO.RISING)
-    #print("RISING")
-	Event3.set()
-	return
+  GPIO.wait_for_edge(29, GPIO.RISING)
+  #print("RISING")
+  Event3.set()
+  return
 
 while (successor == False):
-	Event2.clear()
-	Event3.clear()
-	myVar = False
-	riseThread = threading.Thread(target=detectRisingPin)
-	riseThread.start()
-	Event3.wait(10000)
-	pinThread = threading.Thread(target=detectFallingPin)
-	pinThread.setDaemon(True)
-	pinThread.start()
-	camThread = threading.Thread(target=cameraCapture)
-	camThread.run()
-	Event2.wait(10000)
+  Event2.clear()
+  Event3.clear()
+  myVar = False
+  riseThread = threading.Thread(target=detectRisingPin)
+  riseThread.start()
+  Event3.wait(10000)
+  pinThread = threading.Thread(target=detectFallingPin)
+  pinThread.setDaemon(True)
+  pinThread.start()
+  camThread = threading.Thread(target=cameraCapture)
+  camThread.run()
+  Event2.wait(10000)
 GPIO.output(31, GPIO.LOW)
 while (1):
-	GPIO.output(15, GPIO.LOW)
-	sleep(0.5)
-	GPIO.output(15, GPIO.HIGH)
-	sleep(0.5)
+  GPIO.output(15, GPIO.LOW)
+  sleep(0.5)
+  GPIO.output(15, GPIO.HIGH)
+  sleep(0.5)
 
