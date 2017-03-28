@@ -1,12 +1,11 @@
 import picamera
-from time import sleep, gmtime
+from time import time, sleep, gmtime
 import os.path
 import os
 import RPi.GPIO as GPIO
 import threading
 
 GPIO.setwarnings(False) 
-myEvent = threading.Event()
 Event2 = threading.Event()
 Event3 = threading.Event()
 successor = False
@@ -57,7 +56,6 @@ camera.rotation = 0
 camera.hflip = True
 camera.vflip = True
 camera.crop = (0.0, 0.0, 1.0, 1.0)
-myVar=False
 
 
 def cameraCapture():
@@ -84,13 +82,14 @@ def cameraCapture():
     #
 	#print("Camera Begin!")
 	#success = myEvent.wait(myVid)
-	mytime=gmtime()
+	mytime=time()
 	notDone=True
 	failed=False
 	global myVar
 	while (notDone):
 		sleep(0.1)
-		if (((gmtime()-myVid)>mytime) or myVar):
+		newtime = time()
+		if (((newtime-myVid)>mytime) or myVar):
 			notDone = False
 			if (myVar == True):
 				failed=True
@@ -125,15 +124,15 @@ def detectFallingPin():
 
 # starts cameraCapture() if GPIO pin rises from low to high
 def detectRisingPin():
-        GPIO.wait_for_edge(29, GPIO.RISING)
-        #print("RISING")
+    GPIO.wait_for_edge(29, GPIO.RISING)
+    #print("RISING")
 	Event3.set()
 	return
 
 while (successor == False):
-	myEvent.clear()
 	Event2.clear()
 	Event3.clear()
+	myVar = False
 	riseThread = threading.Thread(target=detectRisingPin)
 	riseThread.start()
 	Event3.wait(10000)
