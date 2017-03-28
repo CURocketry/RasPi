@@ -79,7 +79,11 @@ def cameraCapture():
   failed=False
   global myVar
   while (notDone):
-  	sleep(0.1)
+    try:
+      camera.wait_recording(1)
+    except:
+      notDone = False
+      failed = True
   	newtime = time()
     if (((newtime-myVid)>mytime) or myVar):
       notDone = False
